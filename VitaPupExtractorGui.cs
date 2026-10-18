@@ -147,7 +147,8 @@ namespace VitaPupExtractor
                 for (int i = 0; i < files.Length; i++)
                 {
                     string f = files[i];
-                    string outDir = UniqueDir(parent, Path.GetFileNameWithoutExtension(f) + "_ex");
+                    string rel = GetRelDir(inDir, f);
+                    string outDir = UniqueDir(Path.Combine(parent, rel), Path.GetFileNameWithoutExtension(f) + "_ex");
                     Log(string.Format("\n===== [{0}/{1}] {2} =====", i + 1, files.Length, Path.GetFileName(f)));
                     SetStatus(string.Format("Batch {0}/{1}", i + 1, files.Length));
                     try { VitaPup.ExtractPup(f, outDir, opt, VitaKeyStores.All, Log); ok++; }
@@ -156,6 +157,14 @@ namespace VitaPupExtractor
                 Log(string.Format("\nBatch done. OK={0} FAIL={1}", ok, fail));
                 Done(fail == 0);
             });
+        }
+
+        static string GetRelDir(string root, string file)
+        {
+            string dir = Path.GetFullPath(Path.GetDirectoryName(file));
+            root = Path.GetFullPath(root).TrimEnd('\\', '/');
+            if (dir.Length <= root.Length) return "";
+            return dir.Substring(root.Length).Trim('\\', '/');
         }
 
         static string UniqueDir(string parent, string name)

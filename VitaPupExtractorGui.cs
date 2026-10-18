@@ -134,7 +134,7 @@ namespace VitaPupExtractor
             if (inDir.Length == 0 || !Directory.Exists(inDir)) { MessageBox.Show(this, "Set a valid 'Input folder' (folder containing PUPs)."); return; }
             if (parent.Length == 0) { MessageBox.Show(this, "Set an 'Output folder'."); return; }
             var list = new List<string>();
-            try { foreach (string f in Directory.GetFiles(inDir, "*.pup", SearchOption.TopDirectoryOnly)) list.Add(f); }
+            try { foreach (string f in Directory.GetFiles(inDir, "*.pup", SearchOption.AllDirectories)) list.Add(f); }
             catch (Exception ex) { MessageBox.Show(this, "Cannot read folder: " + ex.Message); return; }
             list.Sort(StringComparer.OrdinalIgnoreCase);
             if (list.Count == 0) { MessageBox.Show(this, "No .pup files found in:\n" + inDir); return; }
@@ -147,7 +147,7 @@ namespace VitaPupExtractor
                 for (int i = 0; i < files.Length; i++)
                 {
                     string f = files[i];
-                    string outDir = Path.Combine(parent, Path.GetFileNameWithoutExtension(f) + "_ex");
+                    string outDir = UniqueDir(parent, Path.GetFileNameWithoutExtension(f) + "_ex");
                     Log(string.Format("\n===== [{0}/{1}] {2} =====", i + 1, files.Length, Path.GetFileName(f)));
                     SetStatus(string.Format("Batch {0}/{1}", i + 1, files.Length));
                     try { VitaPup.ExtractPup(f, outDir, opt, VitaKeyStores.All, Log); ok++; }
@@ -156,6 +156,13 @@ namespace VitaPupExtractor
                 Log(string.Format("\nBatch done. OK={0} FAIL={1}", ok, fail));
                 Done(fail == 0);
             });
+        }
+
+        static string UniqueDir(string parent, string name)
+        {
+            string p = Path.Combine(parent, name);
+            if (!Directory.Exists(p) || !Directory.EnumerateFileSystemEntries(p).GetEnumerator().MoveNext()) return p;
+            for (int k = 2; ; k++) { string q = Path.Combine(parent, name + "_" + k); if (!Directory.Exists(q)) return q; }
         }
 
         void RunThread(ThreadStart work) { var t = new Thread(work); t.IsBackground = true; t.Start(); }

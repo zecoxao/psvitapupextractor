@@ -1,0 +1,5 @@
+# build outputs (note: unarzl.exe IS committed as a prebuilt helper)
+psvitapupextractor_gui.exe
+*.pdb
+*.obj
+*.zip
